@@ -1,13 +1,15 @@
 from robocorp import http
 from RPA.Browser.Selenium import Selenium
-import time
 
 from utils import lib
 
-# TODO: CREATE CLASS FOR THIS MODEL
+import time
 
 
-def open_nytimes(*, browser:Selenium, url_nytimes:str):
+# TODO: Create class and implement its methods using these functions 
+
+
+def open_nytimes(*, browser:Selenium, url_nytimes:str, search_phrase:str):
     """
     """
     if not url_nytimes:
@@ -15,8 +17,11 @@ def open_nytimes(*, browser:Selenium, url_nytimes:str):
     elif not isinstance(url_nytimes, str):
         return (-1, f'url_nytimes not str! type(url_nytimes): {type(url_nytimes)}')
     
+    search = search_phrase.replace(' ', '%20')
+    url_search = f'{url_nytimes}/search?query={search}&sort=newest'
+
     try:
-        browser.open_available_browser(url=url_nytimes)
+        browser.open_available_browser(url=url_search)
     except Exception as error:
         return (-2, f'error opening available browser. error: {error}')
     

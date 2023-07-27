@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import re
 
 
@@ -28,18 +28,15 @@ def get_previous_and_today_date(*, date_range:int):
         return (-1, f'date_range is not a valid parameter. date_range: {date_range} type(data_range): {type(date_range)}')
 
     today_date = datetime.today().strftime('%m/%d/%Y')
-    month = str(today_date).split('/')[0]
-    year = str(today_date).split('/')[2]
-
-    if date_range > 1:
-        month = int(month) - (date_range-1)
-        # TODO: fix this when month is negative 
-        if month == 0:
-            month = "12"
-            year = int(year) - 1
-        elif len(str(month)) == 1:
-            month = f'0{month}'
-
-    previous_date = f'{month}/01/{year}'
+    if date_range <= 2:
+        today_month = str(today_date).split('/')[0]
+        today_year = str(today_date).split('/')[2]
+        previous_date = f'{today_month}/01/{today_year}'
+    else:
+        previous_date = datetime.now() - timedelta(days=((date_range-1) * 30))
+        previous_month = str(previous_date).split('-')[1]
+        previous_year = str(previous_date).split('-')[0]
+        previous_date = f'{previous_month}/01/{previous_year}'
+    
     return previous_date, today_date
 

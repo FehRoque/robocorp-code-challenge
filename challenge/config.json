@@ -1,6 +1,6 @@
 {
-    "search_phrase": "toronto",
-    "date_range": 1,
-    "categories": ["Article"],
+    "search_phrase": "Sports",
+    "date_range": 9,
+    "categories": [],
     "sections": ["World"]
 }

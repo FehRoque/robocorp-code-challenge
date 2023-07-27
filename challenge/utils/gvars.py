@@ -1,3 +1,7 @@
+env = "dev"
+
+excel_path = "output/excel/output.xlsx"
+output_json_path = "output/data.json"
 url_nytimes = "https://nytimes.com/"
 
 sections_type = {
