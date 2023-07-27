@@ -28,7 +28,7 @@ def get_previous_and_today_date(*, date_range:int):
         return (-1, f'date_range is not a valid parameter. date_range: {date_range} type(data_range): {type(date_range)}')
 
     today_date = datetime.today().strftime('%m/%d/%Y')
-    if date_range <= 2:
+    if date_range < 2:
         today_month = str(today_date).split('/')[0]
         today_year = str(today_date).split('/')[2]
         previous_date = f'{today_month}/01/{today_year}'
