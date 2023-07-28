@@ -13,7 +13,7 @@ def main(*, work_items:dict):
     
     ny.apply_filters(
         date_range=work_items['date_range'], 
-        categories=work_items['categories'], 
+        types=work_items['types'], 
         sections=work_items['sections']
     )
 
@@ -28,7 +28,10 @@ def main(*, work_items:dict):
     json_file.close()
 
     excel = Excel()
-    excel.fill_excel(data=results, search_phrase=work_items['search_phrase'])
+    excel.fill_excel(
+        data=results, 
+        search_phrase=work_items['search_phrase']
+    )
     
     return 1
 

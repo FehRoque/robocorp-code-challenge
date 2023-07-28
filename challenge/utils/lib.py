@@ -16,6 +16,7 @@ def contains_money(*, title:str, description:str):
     
     money_pattern = r'\$[\d,.]+|\d+ (dollars|USD)'
     found_money = bool(re.search(money_pattern, title + description))
+    
     return found_money
 
 
@@ -30,10 +31,11 @@ def count_search_phrases(*, title:str, description:str, phrase:str):
             int: count_phrase
     """
     if not title or not description:
-        return 0
+        return None
 
     title_count = title.lower().count(phrase.lower())
     description_count = description.lower().count(phrase.lower())
+    
     count_phrase = title_count + description_count
     return count_phrase
 

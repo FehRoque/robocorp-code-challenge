@@ -94,47 +94,47 @@ class NyTimes(Selenium):
                     raise Exception(msg_error)
                 
 
-    def apply_filter(self, filter_type:str, filters:list[str]):
+    def apply_filter(self, type_filter:str, filters:list[str]):
         """
-            Apply specific filter
+            Apply specific filter (Section or Type)
         """
-        if not isinstance(filter_type, str):
-            msg_error = f'filter_type is not str. type(filter_type): {type(filter_type)}'
+        if not isinstance(type_filter, str):
+            msg_error = f'type_filter is not str. type(type_filter): {type(type_filter)}'
             raise Exception(msg_error)
-        elif filter_type.lower() != 'section' and filter_type.lower() != 'type':
-            msg_error = f'filter_type unknown. filter_type: {filter_type}'
+        elif type_filter.lower() != 'section' and type_filter.lower() != 'type':
+            msg_error = f'type_filter unknown. type_filter: {type_filter}'
             raise Exception(msg_error)
         
         if not filters or len(filters) == 0:
             msg= f'no filters to apply. filters: {filters}'
             return msg
 
-        locator_filter_type_button = f"xpath://button//label[contains(text(), '{filter_type.capitalize()}')]"
+        type_filter_button_locator = f"xpath://button//label[contains(text(), '{type_filter.capitalize()}')]"
         try:    
-            self.browser.wait_until_element_is_enabled(locator=locator_filter_type_button, timeout=15)
-            webelement = self.browser.get_webelement(locator=locator_filter_type_button)
-            self.browser.click_element(locator=webelement)
+            self.browser.wait_until_element_is_enabled(locator=type_filter_button_locator, timeout=15)
+            button_type_filter = self.browser.get_webelement(locator=type_filter_button_locator)
+            self.browser.click_element(locator=button_type_filter)
         except Exception as error:
-            msg_error = f"error: {error} clicking element. locator: {locator_filter_type_button}"
+            msg_error = f"error: {error} clicking element. locator: {type_filter_button_locator}"
             raise Exception(msg_error)
 
-        for section in filters:
-            xpath_element = f"xpath://span[contains(text(), '{section.capitalize()}')]"
+        for filter in filters:
+            xpath_element = f"xpath://span[contains(text(), '{filter.capitalize()}')]"
             try:
-                webelement = self.browser.get_webelement(locator=xpath_element)
-                self.browser.click_element(locator=webelement)
+                button_filter = self.browser.get_webelement(locator=xpath_element)
+                self.browser.click_element(locator=button_filter)
             except:
                 continue
                         
         try:    
-            webelement = self.browser.get_webelement(locator=locator_filter_type_button)
-            self.browser.click_element(locator=webelement)
+            button_type_filter = self.browser.get_webelement(locator=type_filter_button_locator)
+            self.browser.click_element(locator=button_type_filter)
         except Exception as error:
-            msg_error = f"error: {error} clicking element. locator: {locator_filter_type_button}"
+            msg_error = f"error: {error} clicking element. locator: {type_filter_button_locator}"
             raise Exception(msg_error)
         
 
-    def apply_filters(self, date_range:int, categories:list[str], sections:list[str]):
+    def apply_filters(self, date_range:int, types:list[str], sections:list[str]):
         """
             Apply all filters
         """
@@ -149,9 +149,9 @@ class NyTimes(Selenium):
                 previous_date, today_date = lib.get_previous_and_today_date(date_range=date_range)
                 self.apply_date(previous_date=previous_date, today_date=today_date)
             elif filter == 'section':
-                self.apply_filter(filter_type=filter, filters=sections)
+                self.apply_filter(type_filter=filter, filters=sections)
             elif filter == 'type':
-                self.apply_filter(filter_type=filter, filters=categories)
+                self.apply_filter(type_filter=filter, filters=types)
 
         button_locator = 'xpath://*[@id="site-content"]/div/div[1]/div[1]/form/div[1]/button'
         try:
@@ -240,32 +240,32 @@ class NyTimes(Selenium):
                         try:
                             date = element_finded[0].text
                         except:
-                            date = 'error'
+                            date = None
                     elif key_element == 'title':
                         try:
                             title = element_finded[0].text
                         except:
-                            title = 'error'
+                            title = None
                     elif key_element == 'description':
                         try:
                             description = element_finded[1].text
                         except:
-                            description = 'error'
+                            description = None
                     elif key_element == 'img':
                         try:
                             src_img = self.browser.get_element_attribute(element_finded[0], 'src')
                         except:
-                            src_img = 'error'
+                            src_img = None
 
-                if src_img == 'error':
-                    img_filename = 'error'
-                else:
+                if src_img:
                     try:
                         img_path = str(src_img.split('images')[1]).split('?')[0]
                         img_filename = img_path.split('/')[-1]
                         http.download(url=src_img, target_file=f'output/images/{img_filename}')
                     except:
-                        img_filename = 'error'
+                        img_filename = None
+                else:
+                    img_filename = None
 
                 count_phrase = lib.count_search_phrases(title=title, description=description, phrase=self.search_phrase)
                 has_money = lib.contains_money(title=title, description=description)

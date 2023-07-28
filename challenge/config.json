@@ -1,9 +1,9 @@
 {
-    "env": "dev",
+    "env": "hml",
     "work_items": {
         "search_phrase": "technology",
-        "date_range": 2,
-        "categories": null,
-        "sections": []
+        "date_range": 3,
+        "sections": ["World", "Technology"],
+        "types": ["Audio", "Video"]
     }
 }
