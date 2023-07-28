@@ -1,6 +1,9 @@
 {
-    "search_phrase": "Sports",
-    "date_range": 9,
-    "categories": [],
-    "sections": ["World"]
+    "env": "dev",
+    "work_items": {
+        "search_phrase": "technology",
+        "date_range": 2,
+        "categories": null,
+        "sections": []
+    }
 }

@@ -1,261 +1,284 @@
 from robocorp import http
 from RPA.Browser.Selenium import Selenium
-
 from utils import lib
 
 import time
 
 
-# TODO: Create class and implement its methods using these functions 
+class NyTimes(Selenium):
+    url = "https://nytimes.com/"
 
 
-def open_nytimes(*, browser:Selenium, url_nytimes:str, search_phrase:str):
-    """
-    """
-    if not url_nytimes:
-        return (-1, 'url_nytimes not specified!')
-    elif not isinstance(url_nytimes, str):
-        return (-1, f'url_nytimes not str! type(url_nytimes): {type(url_nytimes)}')
-    
-    search = search_phrase.replace(' ', '%20')
-    url_search = f'{url_nytimes}/search?query={search}&sort=newest'
-
-    try:
-        browser.open_available_browser(url=url_search)
-    except Exception as error:
-        return (-2, f'error opening available browser. error: {error}')
-    
-    try:
-        button_locator = "xpath://button[contains(text(), 'Continue')]"
-        browser.wait_until_element_is_visible(locator=button_locator, timeout=5)
-
-        webelement = browser.get_webelement(locator=button_locator)
-        browser.click_button(locator=webelement)
-    except:
-        pass
-
-    try:
-        page_locator = 'id:searchTextField'
-        browser.find_element(locator=page_locator)
-    except Exception as error:
-        return (-99, f'Exception while finding element {page_locator}, page may not be available! error: {error}')
-    
-    return (1, 'browser opened successfully!')
+    def __init__(self, search_phrase:str):
+        super()
+        self.browser = Selenium()
+        self.search_phrase = search_phrase
 
 
-def apply_filter(*, browser:Selenium, filter_type:str, filters:list[str]):
-    """
-    """
-    if not isinstance(filter_type, str):
-        return (-1, f'filter_type is not str. type(filter_type): {type(filter_type)}' )
-    elif filter_type.lower() != 'section' and filter_type.lower() != 'type':
-        return (-1, f'filter_type unknown. filter_type: {filter_type}' )
-    
-    if not isinstance(filters, list):
-        return (-1, f'filters is not list!. type(filters): {type(filters)}' )
-    elif not filters or len(filters) == 0:
-        return (0, f'no filters to apply. filters: {filters}')
-
-    locator_filter_type_button = f"xpath://button//label[contains(text(), '{filter_type.capitalize()}')]"
-    try:    
-        browser.wait_until_element_is_enabled(locator=locator_filter_type_button, timeout=15)
-        webelement = browser.get_webelement(locator=locator_filter_type_button)
-        browser.click_element(locator=webelement)
-    except Exception as error:
-        return (-1, f"error: {error} filter_type: {filter_type} locator: {locator_filter_type_button}")
-
-    for section in filters:
-        xpath_element = f"xpath://span[contains(text(), '{section.capitalize()}')]"
-        try:
-            webelement = browser.get_webelement(locator=xpath_element)
-            browser.click_element(locator=webelement)
-        except:
-            continue
-                    
-    try:    
-        webelement = browser.get_webelement(locator=locator_filter_type_button)
-        browser.click_element(locator=webelement)
-    except:
-        return (-2, f"error clicking '{filter_type}' element. locator: {locator_filter_type_button}")
-    
-    return (1, 'filter applied OK')
-
-
-def apply_filters(*, browser:Selenium, date_range:int, categories:list[str], sections:list[str]):
-    """
-    """
-    filters = [
-        'date_range',
-        'section',
-        'type',
-    ]
-    
-    for filter in filters:
-        if filter == 'date_range':
-            previous_date, today_date = lib.get_previous_and_today_date(date_range=date_range)
-            filter_applied = filter_dates(browser=browser, previous_date=previous_date, today_date=today_date)
-        elif filter == 'section':
-            filter_applied = apply_filter(browser=browser, filter_type=filter, filters=sections)
-        elif filter == 'type':
-            filter_applied = apply_filter(browser=browser, filter_type=filter, filters=categories)
+    def open(self):
+        """
+            Open the nytimes website using url and search phrase
+        """
+        if not self.search_phrase:
+            msg_error = 'search_phrase not specified!'
+            raise Exception(msg_error)
+        elif not isinstance(self.search_phrase, str):
+            msg_error = f'search_phrase not str! type(search_phrase): {type(self.search_phrase)}'
+            raise Exception(msg_error)
         
-        if filter_applied[0] < 0:
-            return (-1, f'error applying filter. filter: {filter} filter_applied: {filter_applied}')
+        search_query = self.search_phrase.replace(' ', '%20')
+        url_search = f'{self.url}/search?query={search_query}&sort=newest'
 
-    button_locator = 'xpath://*[@id="site-content"]/div/div[1]/div[1]/form/div[1]/button'
-    try:
-        webelement = browser.get_webelement(locator=button_locator)
-        browser.click_button_when_visible(locator=webelement)
-    except Exception as error:
-        return (-2, f'error submitting filters. locator: {button_locator} error: {error}')
-    
-    return (1, 'filters applied OK')
-
-
-def filter_dates(*, browser:Selenium, previous_date:str, today_date:str):
-    """
-    """
-    elements = {
-        'date_range': "xpath://button//label[contains(text(), 'Date Range')]",
-        'specific_dates': "xpath://button[contains(text(), 'Specific Dates')]",
-        'start_date': "id:startDate",
-    }
-
-    for element in elements.values():
         try:
-            webelement = browser.get_webelement(locator=element)
-            browser.click_button_when_visible(locator=webelement)
+            self.browser.open_available_browser(url=url_search)
         except Exception as error:
-            return (-2, f'error: {error} element: {element} ')
-    
-    elements = {
-        'start_date': "id:startDate",
-        'end_date': "id:endDate",
-    }
-
-    for key_element in elements.keys():
-        element = elements[key_element] 
-        if key_element == 'start_date':
-            try:
-                browser.input_text(element, previous_date)
-            except Exception as error:
-                return (-2, f'error: {error} element: {element} ')
-        elif key_element == 'end_date':
-            try:
-                webelement = browser.get_webelement(locator=element)
-                browser.click_button_when_visible(locator=webelement)
-
-                browser.input_text(webelement, today_date)
-                browser.press_keys(webelement, 'ENTER')
-            except Exception as error:
-                return (-2, f'error: {error} element: {element} ')
-            
-    return (1, 'date filters OK')
-
-
-def get_search_results(*, browser:Selenium, search_phrase:str):
-    """
-    """
-    button_locator = "xpath://button[contains(text(), 'Show More')]"
-    try:
-        show_more_button = browser.get_webelement(button_locator)
-        show_more = True
-    except:
-        show_more = False
-
-    while show_more:
+            msg_error = f'error opening available browser. error: {error}'
+            raise Exception(msg_error)
+        
+        close_popup_button_locator = "xpath://button[contains(text(), 'Continue')]"
         try:
-            show_more_button = browser.get_webelement(button_locator)
-            browser.click_element_when_clickable(show_more_button, timeout=3)
-            time.sleep(1)
+            self.browser.wait_until_element_is_visible(locator=close_popup_button_locator)
+            webelement = self.browser.get_webelement(locator=close_popup_button_locator)
+            self.browser.click_button(locator=webelement)
         except:
-            show_more = False
+            pass
 
-    results_locator = "xpath://p[contains(text(), 'results for')]"
-    try:
-        browser.wait_until_page_contains_element(locator=results_locator)
-        webelement = browser.get_webelement(locator=results_locator)
-        results = webelement.text
-        results_number = results.split()[1]
-    except Exception as error:
-        return (-1, f'error getting results. error: {error} locator: {results_locator}')
-    
-    if int(results_number) < 1:
-        return (0, f'There is no results for this search. results: {results} results_number: {results_number}')
+        page_locator = 'id:searchTextField'
+        try:
+            self.browser.find_element(locator=page_locator)
+        except Exception as error:
+            msg_error = f'Exception while finding element {page_locator}, page may not be available! error: {error}'
+            raise Exception(msg_error)
+        
 
-    table_results_locator = 'tag:ol'
-    try:
-        browser.wait_until_page_contains_element(locator=table_results_locator)
-        table_elements = browser.get_webelements(locator=table_results_locator)
-    except Exception as error:
-        return (-2, f'error getting table results elements. error: {error} locator: {table_results_locator}')
+    def apply_date(self, previous_date:str, today_date:str):
+        """
+            Apply date filter
+        """
+        elements = {
+            'date_range': "xpath://button//label[contains(text(), 'Date Range')]",
+            'specific_dates': "xpath://button[contains(text(), 'Specific Dates')]",
+            'start_date': "id:startDate",
+        }
 
-    values_search = dict()
-    for table in table_elements:
-        news = 0
+        for element in elements.values():
+            try:
+                webelement = self.browser.get_webelement(locator=element)
+                self.browser.click_button_when_visible(locator=webelement)
+            except Exception as error:
+                msg_error = f'error: {error} element: {element}'
+                raise Exception(msg_error)
+        
+        elements = {
+            'start_date': "id:startDate",
+            'end_date': "id:endDate",
+        }
 
-        list_elements = browser.find_elements(locator='tag:li', parent=table)
-        for list_item in list_elements:
-            elements = {
-                'date': 'tag:span',
-                'title': 'tag:h4',
-                'description': 'tag:p',
-                'img': 'tag:img',
-            }
+        for key_element in elements.keys():
+            element = elements[key_element] 
+            if key_element == 'start_date':
+                try:
+                    self.browser.input_text(element, previous_date)
+                except Exception as error:
+                    msg_error = f'error: {error} element: {element}'
+                    raise Exception(msg_error)
+            elif key_element == 'end_date':
+                try:
+                    webelement = self.browser.get_webelement(locator=element)
+                    self.browser.click_button_when_visible(locator=webelement)
 
-            for key_element in elements.keys():
-                element = elements[key_element]
+                    self.browser.input_text(webelement, today_date)
+                    self.browser.press_keys(webelement, 'ENTER')
+                except Exception as error:
+                    msg_error = f'error: {error} element: {element}'
+                    raise Exception(msg_error)
+                
 
-                element_finded = browser.find_elements(locator=element, parent=list_item)
-                if not element_finded:
-                    break
+    def apply_filter(self, filter_type:str, filters:list[str]):
+        """
+            Apply specific filter
+        """
+        if not isinstance(filter_type, str):
+            msg_error = f'filter_type is not str. type(filter_type): {type(filter_type)}'
+            raise Exception(msg_error)
+        elif filter_type.lower() != 'section' and filter_type.lower() != 'type':
+            msg_error = f'filter_type unknown. filter_type: {filter_type}'
+            raise Exception(msg_error)
+        
+        if not filters or len(filters) == 0:
+            msg= f'no filters to apply. filters: {filters}'
+            return msg
 
-                if key_element == 'date':
-                    try:
-                        date = element_finded[0].text
-                    except:
-                        date = 'error'
-                elif key_element == 'title':
-                    try:
-                        title = element_finded[0].text
-                    except:
-                        title = 'error'
-                elif key_element == 'description':
-                    try:
-                        description = element_finded[1].text
-                    except:
-                        description = 'error'
-                elif key_element == 'img':
-                    try:
-                        src_img = browser.get_element_attribute(element_finded[0], 'src')
-                    except:
-                        src_img = 'error'
+        locator_filter_type_button = f"xpath://button//label[contains(text(), '{filter_type.capitalize()}')]"
+        try:    
+            self.browser.wait_until_element_is_enabled(locator=locator_filter_type_button, timeout=15)
+            webelement = self.browser.get_webelement(locator=locator_filter_type_button)
+            self.browser.click_element(locator=webelement)
+        except Exception as error:
+            msg_error = f"error: {error} clicking element. locator: {locator_filter_type_button}"
+            raise Exception(msg_error)
 
-            if not element_finded:
+        for section in filters:
+            xpath_element = f"xpath://span[contains(text(), '{section.capitalize()}')]"
+            try:
+                webelement = self.browser.get_webelement(locator=xpath_element)
+                self.browser.click_element(locator=webelement)
+            except:
+                continue
+                        
+        try:    
+            webelement = self.browser.get_webelement(locator=locator_filter_type_button)
+            self.browser.click_element(locator=webelement)
+        except Exception as error:
+            msg_error = f"error: {error} clicking element. locator: {locator_filter_type_button}"
+            raise Exception(msg_error)
+        
+
+    def apply_filters(self, date_range:int, categories:list[str], sections:list[str]):
+        """
+            Apply all filters
+        """
+        type_filters = [
+            'date_range',
+            'section',
+            'type',
+        ]
+        
+        for filter in type_filters:
+            if filter == 'date_range':
+                previous_date, today_date = lib.get_previous_and_today_date(date_range=date_range)
+                self.apply_date(previous_date=previous_date, today_date=today_date)
+            elif filter == 'section':
+                self.apply_filter(filter_type=filter, filters=sections)
+            elif filter == 'type':
+                self.apply_filter(filter_type=filter, filters=categories)
+
+        button_locator = 'xpath://*[@id="site-content"]/div/div[1]/div[1]/form/div[1]/button'
+        try:
+            webelement = self.browser.get_webelement(locator=button_locator)
+            self.browser.click_button_when_visible(locator=webelement)
+        except Exception as error:
+            msg_error = f'error submitting filters. locator: {button_locator} error: {error}'
+            raise Exception(msg_error)
+        
+
+    def get_results(self):
+        """
+            Get all of the results for that search phrase
+        """
+        results_locator = "xpath://p[contains(text(), 'results for')]"
+        try:
+            self.browser.wait_until_page_contains_element(locator=results_locator)
+            webelement = self.browser.get_webelement(locator=results_locator)
+            results = webelement.text
+            results_number = results.split()[1]
+        except Exception as error:
+            msg_error = f'error getting results for this search. error: {error} locator: {results_locator}'
+            raise Exception(msg_error)
+        
+        if results_number == '0':
+            msg = f'There is no results for this search. results: {results} results_number: {results_number}'
+            return (0, msg)
+            
+        show_more_button_locator = "xpath://button[contains(text(), 'Show More')]"
+        show_more_results = True
+
+        while show_more_results:
+            try:
+                results_before_click = self.browser.find_elements(locator='tag:h4')
+            except:
+                results_before_click = None
+            try:
+                self.browser.click_element(locator=show_more_button_locator)
+                time.sleep(1)
+            except:
+                show_more_results = False
+            try:
+                results_after_click = self.browser.find_elements(locator='tag:h4')
+            except:
+                results_after_click = None
+            if results_after_click == results_before_click:
+                show_more_results = False
+
+        table_results_locator = 'tag:ol'
+        try:
+            table_elements = self.browser.get_webelements(locator=table_results_locator)
+        except Exception as error:
+            msg_error = f'error getting table results elements. error: {error} locator: {table_results_locator}'
+            raise Exception(msg_error)
+
+        search_values = dict()
+        for table in table_elements:
+            list_itens_locator = 'tag:li'
+            try: 
+                list_elements = self.browser.find_elements(locator=list_itens_locator, parent=table)
+                len_list = len(list_elements)
+            except Exception as error:
+                msg_error = f'error getting elements inside table. error: {error} locator: {list_itens_locator}' 
+                raise Exception(msg_error)
+            
+            if len_list == 0:
                 continue
 
-            if src_img == 'error':
-                img_filename = 'error'
-            else:
-                try:
-                    img_path = str(src_img.split('images')[1]).split('?')[0]
-                    img_filename = img_path.split('/')[-1]
-                    http.download(url=src_img, target_file=f'output/images/{img_filename}')
-                except:
+            news_index = 0
+            for list_item in list_elements:
+                elements_to_interact = {
+                    'date': 'tag:span',
+                    'title': 'tag:h4',
+                    'description': 'tag:p',
+                    'img': 'tag:img',
+                }
+
+                for key_element in elements_to_interact.keys():
+                    element = elements_to_interact[key_element]
+                    try:
+                        element_finded = self.browser.find_elements(locator=element, parent=list_item)
+                    except:
+                        element_finded = None
+
+                    if key_element == 'date':
+                        try:
+                            date = element_finded[0].text
+                        except:
+                            date = 'error'
+                    elif key_element == 'title':
+                        try:
+                            title = element_finded[0].text
+                        except:
+                            title = 'error'
+                    elif key_element == 'description':
+                        try:
+                            description = element_finded[1].text
+                        except:
+                            description = 'error'
+                    elif key_element == 'img':
+                        try:
+                            src_img = self.browser.get_element_attribute(element_finded[0], 'src')
+                        except:
+                            src_img = 'error'
+
+                if src_img == 'error':
                     img_filename = 'error'
+                else:
+                    try:
+                        img_path = str(src_img.split('images')[1]).split('?')[0]
+                        img_filename = img_path.split('/')[-1]
+                        http.download(url=src_img, target_file=f'output/images/{img_filename}')
+                    except:
+                        img_filename = 'error'
 
-            count_phrase = lib.count_search_phrases(title=title, description=description, phrase=search_phrase)
-            has_money = lib.contains_money(title=title, description=description)
+                count_phrase = lib.count_search_phrases(title=title, description=description, phrase=self.search_phrase)
+                has_money = lib.contains_money(title=title, description=description)
 
-            news += 1
-            values_search[news] = {
-                'date': date,
-                'title': title,
-                'description': description,
-                'img_filename': img_filename,
-                'count_phrase': count_phrase,
-                'has_money': has_money,
-            }
+                news_index += 1
+                search_values[news_index] = {
+                    'date': date,
+                    'title': title,
+                    'description': description,
+                    'img_filename': img_filename,
+                    'count_phrase': count_phrase,
+                    'has_money': has_money,
+                }
 
-    return values_search
+        return search_values
 
