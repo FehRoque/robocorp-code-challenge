@@ -12,7 +12,7 @@ def contains_money(*, title:str, description:str):
             bool: found_money
     """
     if not title or not description:
-        return False
+        return None
     
     money_pattern = r'\$[\d,.]+|\d+ (dollars|USD)'
     found_money = bool(re.search(money_pattern, title + description))

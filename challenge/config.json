@@ -1,9 +1,13 @@
 {
     "env": "hml",
+    "keys": ["date_range", "search_phrase", "sections", "types"],
     "work_items": {
         "search_phrase": "technology",
         "date_range": 3,
-        "sections": ["World", "Technology"],
-        "types": ["Audio", "Video"]
+        "types": [],
+        "sections": [
+          "Technology",
+          "World"
+        ]
     }
 }

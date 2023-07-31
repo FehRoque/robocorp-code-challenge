@@ -5,7 +5,7 @@ import os
 
 
 class Excel:
-    path_excel = "output/excel/output.xlsx"
+    path_excel = "output/output.xlsx"
     path = path_excel.split('/')
     
     excel_name = path[-1]
@@ -74,30 +74,36 @@ class Excel:
         worksheet = wb.create_worksheet(name=search_phrase, exist_ok=True)
         self.set_headers(worksheet=worksheet)
 
+        previous_news_values = []
         for news in data.keys():
             try:
-                value_news = data[news]
+                news_value = data[news]
             except:
                 continue
 
             values = [
-                value_news['date'],
-                value_news['title'],
-                value_news['description'],
-                value_news['img_filename'],
-                value_news['count_phrase'],
-                value_news['has_money'],
+                news_value['date'],
+                news_value['title'],
+                news_value['description'],
+                news_value['img_filename'],
+                news_value['count_phrase'],
+                news_value['has_money'],
             ] 
+
+            # skip in case of repeated news
+            if values == previous_news_values:
+                continue
 
             row = int(news) + 1
             column = 1
-
             for value in values:
                 try:
                     worksheet.set_cell_value(row=row, column=column, value=value)
                 except:
                     worksheet.set_cell_value(row=row, column=column, value='error')
                 column += 1
+
+            previous_news_values = values
 
         if os.path.isfile(excel_path):
             try:
